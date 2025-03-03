@@ -10,6 +10,13 @@ Simple Unreal Engine (UE) plugin containing an actor component which creates a U
 ## Dependencies
 Plugin makes use of `Networking` and `Sockets` UE modules.
 
+## Installation
+1. Clone this repository into your `Plugins/` directory:
+   ```bash
+   $ git clone https://github.com/wjake/UE-UDPReceiver.git Plugins/UDPReceiver
+   ```
+2. Open your Unreal Engine project, and enable the plugin in the Plugins Manager.
+
 ## Usage
 ### Unreal Engine
 1. Add the `UUDPReceiver` component to your actor
