@@ -4,6 +4,7 @@ Simple Unreal Engine (UE) plugin containing an actor component which creates a U
 
 ## Features
 - Event-driven UDP message processing
+- Send message functionality for client communication
 - Blueprint integration
 - Customizable IP, port, and buffer size
 
@@ -21,7 +22,9 @@ Plugin makes use of `Networking` and `Sockets` UE modules.
 ### Unreal Engine
 1. Add the `UUDPReceiver` component to your actor
 2. Configure the properties (IP, Port, etc.)
-3. Set component `Auto activate` in Details pane, or call `StartUDPReceiver` in the Event Graph.
+3. Set component `Auto activate` in Details pane, or call `StartUDPReceiver` in the Event Graph
+4. Use `OnMessageReceivedEvent` node to handle received messages
+5. Use `SendMessage` node to send message to a client
 
 ![alt text](Resources/blueprint-example-1.png)
 ![alt text](Resources/blueprint-example-2.png)
@@ -43,7 +46,11 @@ udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 ```Python
 udp_socket.sendto('data', server_address)
 ```
-5. Close socket connection
+5. Receive Message
+```Python
+data, server = udp_socket.recvfrom(1024)
+```
+6. Close socket connection
 ```Python
 udp_socket.close()
 ```
