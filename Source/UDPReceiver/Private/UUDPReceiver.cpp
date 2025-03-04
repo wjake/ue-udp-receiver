@@ -94,6 +94,38 @@ UUDPReceiver* UUDPReceiver::UpdateConfig(const FString& NewIP, int32 NewPort, in
     return this;
 }
 
+
+bool UUDPReceiver::SendMessage(const FString& Message, const FString& ReceipientIP)
+{
+    bool bMessageSent = false;
+
+    FIPv4Address Addr;
+    if (!FIPv4Address::Parse(ReceipientIP, Addr))
+    {
+        UE_LOG(LogUDPReceiver, Error, TEXT("Invalid IP Address: %s"), *ReceipientIP);
+        return bMessageSent;
+    }
+
+    FIPv4Endpoint Endpoint(Addr, Port);
+    TArray<uint8> DataBytes;
+    FTCHARToUTF8 Convert(*Message);
+    DataBytes.Append(reinterpret_cast<const uint8*>(Convert.Get()), Convert.Length());
+
+    int32 BytesSent = 0;
+    if (UdpSocket->SendTo(DataBytes.GetData(), DataBytes.Num(), BytesSent, *Endpoint.ToInternetAddr()))
+    {
+        UE_LOG(LogUDPReceiver, Log, TEXT("Sent reply: '%s' to %s"), *Message, *Endpoint.ToString());
+        return bMessageSent = true;
+    }
+    else
+    {
+        UE_LOG(LogUDPReceiver, Error, TEXT("Failed to send reply to %s"), *Endpoint.ToString());
+        return bMessageSent;
+    }
+
+    return bMessageSent;
+}
+
 void UUDPReceiver::OnMessageReceived(const TSharedPtr<FArrayReader, ESPMode::ThreadSafe>& Data, const FIPv4Endpoint& Endpoint)
 {
     // Null-terminate the received data
@@ -102,12 +134,14 @@ void UUDPReceiver::OnMessageReceived(const TSharedPtr<FArrayReader, ESPMode::Thr
 
     // Handle received gesture data
     FString ReceivedDataString = FString(ANSI_TO_TCHAR(reinterpret_cast<const char*>(ReceivedDataArray.GetData())));
+    FString SenderIP = Endpoint.Address.ToString();
+
     UE_LOG(LogUDPReceiver, Warning, TEXT("Received data: %s from %s"), *ReceivedDataString, *Endpoint.ToString());
 
     // Broadcast received data to delegate
-    AsyncTask(ENamedThreads::GameThread, [this, ReceivedDataString]()
+    AsyncTask(ENamedThreads::GameThread, [this, ReceivedDataString, SenderIP]()
     {
-        OnMessageReceivedEvent.Broadcast(ReceivedDataString);
+        OnMessageReceivedEvent.Broadcast(this, SenderIP, ReceivedDataString);
     });
 
     // Prepare response

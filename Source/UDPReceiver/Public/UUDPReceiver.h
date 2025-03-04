@@ -15,7 +15,8 @@
 #include "UUDPReceiver.generated.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogUDPReceiver, Log, All);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FMessageReceivedEvent, const FString&, ReceivedMessage);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FMessageReceivedEvent,
+    UUDPReceiver*, ReceiverInstance,  const FString&, SenderIP, const FString&, ReceivedMessage);
 
 UCLASS(ClassGroup = (Server), meta = (BlueprintSpawnableComponent))
 class UUDPReceiver : public UActorComponent
@@ -37,16 +38,43 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UDP Config")
     int32 BufferSize = 1024;
 
-    UFUNCTION(BlueprintCallable, Category = "UDP")
+    /**
+     * @brief Start the UDP receiver.
+     * @return The UDP receiver instance.
+     */
+    UFUNCTION(BlueprintCallable, Category = "UDP Receiver")
     UUDPReceiver* StartReceiver();
 
-    UFUNCTION(BlueprintCallable, Category = "UDP")
+    /**
+     * @brief Stop the UDP receiver.
+     * @return The UDP receiver instance.
+     */
+    UFUNCTION(BlueprintCallable, Category = "UDP Receiver")
     UUDPReceiver* StopReceiver();
 
+    /**
+     * @brief Update the UDP receiver configuration.
+     * @param NewIP The new IP address.
+     * @param NewPort The new port number.
+     * @param NewBufferSize The new buffer size.
+     * @return The UDP receiver instance.
+     */
     UFUNCTION(BlueprintCallable, Category = "UDP Config")
     UUDPReceiver* UpdateConfig(const FString& NewIP, int32 NewPort, int32 NewBufferSize);
 
-    UPROPERTY(BlueprintAssignable, Category = "UDP")
+    /**
+     * @brief Send a message to a specified recipient.
+     * @param Message The message to send.
+     * @param ReceipientIP The IP address of the recipient.
+     * @return True if the message was sent successfully, false otherwise.
+     */
+    UFUNCTION(BlueprintCallable, Category = "UDP Receiver")
+    bool SendMessage(const FString& Message, const FString& ReceipientIP);
+
+    /**
+     * @brief Event for handling received messages.
+     */
+    UPROPERTY(BlueprintAssignable, Category = "UDP Receiver")
     FMessageReceivedEvent OnMessageReceivedEvent;
 
 protected:
@@ -57,5 +85,10 @@ private:
     FSocket* UdpSocket;
     TSharedPtr<FUdpSocketReceiver> UdpSocketReceiver;
 
+    /**
+     * @brief Callback function for handling received UDP messages.
+     * @param Data The received data.
+     * @param Endpoint The endpoint from which the data was received.
+     */
     void OnMessageReceived(const TSharedPtr<FArrayReader, ESPMode::ThreadSafe>& Data, const FIPv4Endpoint& Endpoint);
 };
