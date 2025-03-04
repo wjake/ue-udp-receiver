@@ -12,6 +12,9 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "Common/UdpSocketReceiver.h"
+#include "Common/UdpSocketBuilder.h"
+#include "Sockets.h"
+#include "Async/Async.h"
 #include "UUDPReceiver.generated.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogUDPReceiver, Log, All);

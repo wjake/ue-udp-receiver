@@ -8,8 +8,6 @@
  */
 
 #include "UUDPReceiver.h"
-#include "Sockets.h"
-#include "Common/UdpSocketBuilder.h"
 
 UUDPReceiver::UUDPReceiver()
 {
